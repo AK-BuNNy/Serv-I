@@ -1,0 +1,25 @@
+┌─────────────────────────────────────────────────────────────────────┐
+│                          Serv-I Platform                            │
+│                                                                     │
+│  [watcher-agent]──chokidar──► [Redis BullMQ Queue]                 │
+│       │                              │                              │
+│  watches /var/log/*                  ▼                              │
+│                          [ai-worker]                                │
+│                          • Parse raw log lines                      │
+│                          • Classify threat (OpenAI GPT-4o)         │
+│                          • Generate embedding (text-embedding-3)    │
+│                          • Store Incident + vector in Postgres      │
+│                                      │                              │
+│                          [api-server (NestJS)]                      │
+│                          • REST API for incidents                   │
+│                          • Ingest endpoint (manual log POST)        │
+│                          • Vector similarity search                 │
+│                          • Incident report generation (OpenAI)      │
+│                          • BullMQ producer                          │
+│                                      │                              │
+│                          [dashboard (Next.js)]                      │
+│                          • Live threat feed                         │
+│                          • Severity charts (Recharts)               │
+│                          • Incident report viewer                   │
+│                          • Semantic log search UI                   │
+└─────────────────────────────────────────────────────────────────────┘

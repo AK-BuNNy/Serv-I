@@ -1,0 +1,63 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+/// Raw log lines ingested before AI processing
+model LogEntry {
+  id        String   @id @default(cuid())
+  source    String   // file path or source identifier
+  line      String   @db.Text // raw log content
+  processed Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("log_entries")
+}
+
+/// AI-classified security incidents
+model Incident {
+  id             String    @id @default(cuid())
+  source         String    // origin log file
+  severity       String    // critical | high | medium | low | info
+  category       String    // brute-force, port-scan, privilege-escalation, etc.
+  rawLog         String    @db.Text @map("raw_log")
+  message        String    @db.Text // parsed human-readable message
+  aiSummary      String?   @db.Text @map("ai_summary")
+  aiProvider     String?   @map("ai_provider") // openai | gemini | claude
+  confidence     Float?    @default(0)
+  indicators     Json?     @default("[]") // IOCs, suspicious IPs, etc.
+  reportMarkdown String?   @db.Text @map("report_markdown")
+  resolvedAt     DateTime? @map("resolved_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // pgvector embedding stored via raw SQL (Prisma doesn't support vector type natively)
+  // Column: embedding vector(1536) — managed via migration
+
+  reports ThreatReport[]
+
+  @@index([severity])
+  @@index([category])
+  @@index([createdAt])
+  @@map("incidents")
+}
+
+/// Generated incident reports
+model ThreatReport {
+  id         String   @id @default(cuid())
+  incidentId String   @map("incident_id")
+  title      String
+  content    String   @db.Text // markdown report
+  aiProvider String   @map("ai_provider")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("threat_reports")
+}

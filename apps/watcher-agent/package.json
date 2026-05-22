@@ -1,0 +1,13 @@
+{
+  "name": "watcher-agent",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js"
+  },
+  "dependencies": {
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.0.0",
+    "chokidar": "^3.5.0"
+  }
+}
