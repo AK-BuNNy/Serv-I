@@ -1,21 +1,6 @@
 version: '3.9'
 
 services:
-  postgres:
-    image: pgvector/pgvector:pg16
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: cybersec_ai
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7
     restart: always
@@ -32,9 +17,9 @@ services:
       - "${API_PORT:-5550}:3000"
     env_file:
       - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
 
@@ -52,10 +37,10 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       redis:
-        condition: service_healthy
-      postgres:
         condition: service_healthy
 
   dashboard:
@@ -67,6 +52,3 @@ services:
       - .env
     depends_on:
       - api-server
-
-volumes:
-  pgdata:
