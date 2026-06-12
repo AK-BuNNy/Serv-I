@@ -31,6 +31,7 @@ services:
 
   api-server:
     build: ./apps/api-server
+    restart: unless-stopped
     ports:
       - "3000:3000"
     env_file:
@@ -43,6 +44,7 @@ services:
 
   watcher-agent:
     build: ./apps/watcher-agent
+    restart: unless-stopped
     env_file:
       - .env
     depends_on:
@@ -51,6 +53,7 @@ services:
 
   ai-worker:
     build: ./apps/ai-worker
+    restart: unless-stopped
     env_file:
       - .env
     depends_on:
@@ -61,6 +64,7 @@ services:
 
   dashboard:
     build: ./apps/dashboard
+    restart: unless-stopped
     ports:
       - "3001:3000"
     env_file:
