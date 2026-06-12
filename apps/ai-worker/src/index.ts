@@ -141,8 +141,20 @@ const worker = new Worker(
         category: classification.category,
         provider: aiProvider.name,
       };
-    } catch (error) {
-      console.error(`  ✗ Error processing job ${job.id}:`, error);
+    } catch (error: any) {
+      console.error(`  ✗ Error processing job ${job.id}:`, error.message || error);
+      
+      // If it's a quota/rate-limit error, just return to "stop the call" instead of throwing
+      // Throwing would cause BullMQ to mark it as failed and potentially retry or crash
+      if (
+        error?.status === 429 || 
+        error?.code === 'insufficient_quota' || 
+        error?.message?.includes('exceeded your current quota')
+      ) {
+        console.warn(`  ! Quota exceeded. Skipping job ${job.id} to stop further calls.`);
+        return { success: false, reason: 'quota_exceeded' };
+      }
+
       throw error;
     }
   },
